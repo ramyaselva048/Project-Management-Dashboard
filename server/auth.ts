@@ -61,7 +61,7 @@ export const requireAuth = (req: AuthenticatedRequest, res: Response, next: Next
     }
   }
 
-  if (!token) {
+  if (!token || token === 'null' || token === 'undefined') {
     return res.status(401).json({ error: 'Authentication required. Please sign in.' });
   }
 

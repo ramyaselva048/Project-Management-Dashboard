@@ -186,9 +186,12 @@ apiRouter.post('/auth/reset-password-by-email', async (req, res) => {
 // GET /api/auth/me
 apiRouter.get('/auth/me', requireAuth, (req: AuthenticatedRequest, res: Response) => {
   try {
-    const user = db.findUserById(req.user!.userId);
+    let user = db.findUserById(req.user!.userId);
+    if (!user && req.user!.email) {
+      user = db.findUserByEmail(req.user!.email);
+    }
     if (!user) {
-      return res.status(404).json({ error: 'User not found.' });
+      return res.status(401).json({ error: 'User not found or session expired.' });
     }
 
     res.json({

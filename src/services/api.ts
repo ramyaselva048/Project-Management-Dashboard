@@ -3,11 +3,17 @@ import { Project, ProjectFile, Activity, ReportSummary, User, DatabaseStatus } f
 const TOKEN_KEY = 'projectflow_token';
 
 export const getAuthToken = (): string | null => {
-  return localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token || token === 'null' || token === 'undefined' || token.trim() === '') {
+    return null;
+  }
+  return token;
 };
 
 export const setAuthToken = (token: string): void => {
-  localStorage.setItem(TOKEN_KEY, token);
+  if (token && token !== 'null' && token !== 'undefined') {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
 };
 
 export const removeAuthToken = (): void => {
@@ -31,11 +37,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   });
 
   if (response.status === 401) {
-    // Unauthorized or token expired
+    // Unauthorized or token expired - clear stale token from storage
     removeAuthToken();
-    if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/signup') && window.location.pathname !== '/') {
-      window.location.href = '/login?expired=true';
-    }
   }
 
   const contentType = response.headers.get('content-type');

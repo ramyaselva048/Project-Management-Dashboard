@@ -31,8 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const profile = await api.getProfile();
       setUser(profile);
-    } catch (err) {
-      console.error('Failed to load authenticated user profile:', err);
+    } catch {
+      // Stale or expired token in storage - cleanly reset session without error
       removeAuthToken();
       setUser(null);
     } finally {
