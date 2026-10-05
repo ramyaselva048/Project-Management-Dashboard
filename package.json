@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
+    "prebuild": "node -e \"if (!require('fs').existsSync('./node_modules/vite')) { console.log('Installing dependencies before build...'); require('child_process').execSync('npm install', { stdio: 'inherit' }); }\"",
     "build": "vite build",
     "preview": "vite preview",
     "start": "tsx server.ts",
