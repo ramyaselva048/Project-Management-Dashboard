@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "prebuild": "node -e \"if (!require('fs').existsSync('./node_modules/vite')) { console.log('Installing dependencies before build...'); require('child_process').execSync('npm install', { stdio: 'inherit' }); }\"",
+    "prebuild": "node -e \"if (!require('fs').existsSync('./node_modules/vite')) { console.log('Installing dependencies before build...'); require('child_process').execSync('npm install --legacy-peer-deps', { stdio: 'inherit' }); }\"",
     "build": "vite build",
     "preview": "vite preview",
     "start": "tsx server.ts",
@@ -28,7 +28,6 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
-    "esbuild": "^0.25.0",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.546.0",
