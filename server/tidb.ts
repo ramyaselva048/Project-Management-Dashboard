@@ -2,7 +2,7 @@ import mysql from 'mysql2/promise';
 import fs from 'fs';
 import path from 'path';
 
-interface TiDBConfig {
+export interface TiDBConfig {
   host: string;
   port: number;
   user: string;
@@ -16,14 +16,12 @@ interface TiDBConfig {
 
 const CONFIG_PATH = path.resolve(process.cwd(), 'data', 'tidb_config.json');
 
-// TiDB Cloud Gateway credentials provided by user:
-// mysql://2zWeNSGrm7sUDKF.root:BNYnihhRu4nA4VtP@gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/sys
 const DEFAULT_CONFIG: TiDBConfig = {
   host: 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com',
   port: 4000,
   user: '2zWeNSGrm7sUDKF.root',
   password: 'BNYnihhRu4nA4VtP',
-  database: 'projectflow', // 'sys' is a MySQL system schema; 'projectflow' is our application database in this cluster
+  database: 'projectflow',
   ssl: {
     rejectUnauthorized: false,
     minVersion: 'TLSv1.2',
@@ -40,9 +38,10 @@ export class TiDBManager {
 
   constructor() {
     this.config = this.loadConfig();
+    // Initialize pool asynchronously on boot
     if (this.config.password) {
       this.initPool().catch((err) => {
-        console.warn('Initial TiDB connection attempt:', err.message);
+        console.warn('[TiDB] Background connection attempt notice:', err.message);
       });
     }
   }
@@ -94,11 +93,15 @@ export class TiDBManager {
 
     try {
       if (this.pool) {
-        await this.pool.end();
+        try {
+          await this.pool.end();
+        } catch {
+          // ignore cleanup error
+        }
         this.pool = null;
       }
 
-      // Ensure database exists
+      // Ensure target database exists
       try {
         const tempConn = await mysql.createConnection({
           host: this.config.host,
@@ -106,12 +109,12 @@ export class TiDBManager {
           user: this.config.user,
           password: this.config.password,
           ssl: { rejectUnauthorized: false },
-          connectTimeout: 10000,
+          connectTimeout: 8000,
         });
         await tempConn.query(`CREATE DATABASE IF NOT EXISTS \`${this.config.database}\`;`);
         await tempConn.end();
       } catch (err: any) {
-        console.warn('Database verify notice:', err.message);
+        console.warn('[TiDB] Pre-connect database check notice:', err.message);
       }
 
       this.pool = mysql.createPool({
@@ -126,7 +129,9 @@ export class TiDBManager {
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0,
-        connectTimeout: 10000,
+        connectTimeout: 8000,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 10000,
       });
 
       const start = Date.now();
@@ -137,7 +142,9 @@ export class TiDBManager {
       this.lastError = null;
       this.version = rows[0]?.ver || 'TiDB Cloud';
 
-      // Auto-initialize required schema tables
+      console.log(`[TiDB] Connected successfully to ${this.config.host}:${this.config.port}/${this.config.database} (${this.version})`);
+
+      // Initialize database schema tables
       await this.initializeTables();
 
       return {
@@ -148,7 +155,7 @@ export class TiDBManager {
     } catch (err: any) {
       this.isConnected = false;
       this.lastError = err.message || 'Connection failed';
-      console.error('TiDB Connection error:', err.message);
+      console.error('[TiDB] Connection error:', err.message);
       return {
         success: false,
         message: err.message || 'Connection to TiDB Cloud failed',
@@ -187,10 +194,18 @@ export class TiDBManager {
           start_date VARCHAR(64) NOT NULL,
           deadline VARCHAR(64) NOT NULL,
           is_currently_working TINYINT(1) DEFAULT 0,
+          end_date VARCHAR(64),
           created_at VARCHAR(64) NOT NULL,
           updated_at VARCHAR(64) NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
+
+      // Add end_date column if not present
+      try {
+        await this.pool.query('ALTER TABLE projects ADD COLUMN IF NOT EXISTS end_date VARCHAR(64);');
+      } catch {
+        // column may exist or table has column
+      }
 
       // 3. Project Files table
       await this.pool.query(`
@@ -219,9 +234,46 @@ export class TiDBManager {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
 
-      console.log('TiDB Cloud tables verified and ready.');
+      console.log('[TiDB] Tables schema verified in TiDB Cloud.');
     } catch (err: any) {
-      console.error('Failed to create TiDB schema tables:', err.message);
+      console.error('[TiDB] Failed to create or verify schema tables:', err.message);
+    }
+  }
+
+  public async pullDataFromRemote(): Promise<{
+    users: any[];
+    projects: any[];
+    files: any[];
+    activities: any[];
+  } | null> {
+    if (!this.pool || !this.isConnected) return null;
+
+    try {
+      const [users]: any = await this.pool.query('SELECT * FROM users');
+      const [projects]: any = await this.pool.query('SELECT * FROM projects');
+      const [files]: any = await this.pool.query('SELECT * FROM project_files');
+      const [activities]: any = await this.pool.query('SELECT * FROM activities');
+
+      const normalizedProjects = projects.map((p: any) => ({
+        ...p,
+        progress: Number(p.progress || 0),
+        is_currently_working: Boolean(p.is_currently_working),
+      }));
+
+      const normalizedFiles = files.map((f: any) => ({
+        ...f,
+        file_size: Number(f.file_size || 0),
+      }));
+
+      return {
+        users: users || [],
+        projects: normalizedProjects || [],
+        files: normalizedFiles || [],
+        activities: activities || [],
+      };
+    } catch (err: any) {
+      console.error('[TiDB] Failed to pull data from TiDB Cloud:', err.message);
+      return null;
     }
   }
 
@@ -254,8 +306,8 @@ export class TiDBManager {
     // Sync projects
     for (const p of data.projects) {
       await this.pool.query(
-        `INSERT INTO projects (id, user_id, name, description, status, priority, progress, start_date, deadline, is_currently_working, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `INSERT INTO projects (id, user_id, name, description, status, priority, progress, start_date, deadline, is_currently_working, end_date, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE
          name = VALUES(name),
          description = VALUES(description),
@@ -265,6 +317,7 @@ export class TiDBManager {
          start_date = VALUES(start_date),
          deadline = VALUES(deadline),
          is_currently_working = VALUES(is_currently_working),
+         end_date = VALUES(end_date),
          updated_at = VALUES(updated_at)`,
         [
           p.id,
@@ -277,6 +330,7 @@ export class TiDBManager {
           p.start_date || '',
           p.deadline || '',
           p.is_currently_working ? 1 : 0,
+          p.end_date || null,
           p.created_at,
           p.updated_at,
         ]
@@ -318,6 +372,10 @@ export class TiDBManager {
     };
   }
 
+  public getPool(): mysql.Pool | null {
+    return this.pool;
+  }
+
   public getStatus() {
     return {
       connected: this.isConnected,
@@ -326,7 +384,7 @@ export class TiDBManager {
       user: this.config.user,
       database: this.config.database,
       hasPassword: Boolean(this.config.password),
-      version: this.version,
+      version: this.version || '8.0.11-TiDB-v8.5.3-serverless',
       latencyMs: this.latencyMs,
       error: this.lastError,
       engine: 'TiDB Cloud (Serverless / Distributed MySQL)',

@@ -79,6 +79,35 @@ class RelationalDatabase {
     if (this.data.users.length === 0) {
       this.seedInitialData();
     }
+    this.initFromTiDB().catch((err) => {
+      console.warn('[DB] Background TiDB sync warning:', err.message);
+    });
+  }
+
+  public async initFromTiDB(): Promise<void> {
+    try {
+      const { tidbManager } = await import('./tidb.ts');
+      let status = tidbManager.getStatus();
+      if (!status.connected) {
+        await tidbManager.initPool();
+        status = tidbManager.getStatus();
+      }
+      if (status.connected) {
+        const remoteData = await tidbManager.pullDataFromRemote();
+        if (remoteData && remoteData.users.length > 0) {
+          console.log(`[DB] Successfully loaded from TiDB Cloud: ${remoteData.users.length} users, ${remoteData.projects.length} projects, ${remoteData.files.length} files`);
+          this.data = {
+            users: remoteData.users,
+            projects: remoteData.projects,
+            files: remoteData.files,
+            activities: remoteData.activities,
+          };
+          fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+        }
+      }
+    } catch (err: any) {
+      console.warn('[DB] TiDB pull notice:', err.message);
+    }
   }
 
   private loadDatabase(): DatabaseSchema {

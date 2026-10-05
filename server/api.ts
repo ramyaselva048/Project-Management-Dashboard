@@ -507,7 +507,7 @@ apiRouter.get('/files', requireAuth, (req: AuthenticatedRequest, res: Response) 
 
 // POST /api/files (Upload file)
 apiRouter.post('/files', requireAuth, (req: AuthenticatedRequest, res: Response) => {
-  uploadMiddleware.single('file')(req, res, (err) => {
+  uploadMiddleware.single('file')(req as any, res as any, (err) => {
     if (err) {
       console.error('File upload error:', err);
       return res.status(400).json({ error: err.message || 'File upload failed.' });

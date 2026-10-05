@@ -2,10 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
 import { apiRouter } from './server/api.ts';
+import { db } from './server/db.ts';
 
 export const app = express();
+const PORT = parseInt(process.env.PORT || '3000', 10);
 
 app.use(cors());
 app.use(express.json());
@@ -23,37 +24,43 @@ app.use('/api', apiRouter);
 // Serve uploads
 app.use('/uploads', express.static(UPLOADS_DIR));
 
-// Serve frontend in production if dist exists
-const distPath = path.resolve(process.cwd(), 'dist');
-if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
-      return next();
-    }
-    res.sendFile(path.join(distPath, 'index.html'));
-  });
-}
+async function startServer() {
+  const isProd = process.env.NODE_ENV === 'production';
 
-// Only listen if executed directly, NOT when imported by vite.config.ts or test runners
-const isDirectRun = () => {
+  // Synchronize database with TiDB Cloud on startup
   try {
-    if (process.env.RUN_STANDALONE === 'true') return true;
-    if (process.argv[1]) {
-      const currentFilePath = fileURLToPath(import.meta.url);
-      return path.resolve(process.argv[1]) === path.resolve(currentFilePath);
-    }
-  } catch {
-    return false;
+    await db.initFromTiDB();
+  } catch (err: any) {
+    console.warn('[Server] Initial TiDB sync notice:', err.message);
   }
-  return false;
-};
 
-if (isDirectRun()) {
-  const PORT = parseInt(process.env.PORT || '3000', 10);
+  if (!isProd) {
+    const { createServer: createViteServer } = await import('vite');
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa',
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.resolve(process.cwd(), 'dist');
+    if (fs.existsSync(distPath)) {
+      app.use(express.static(distPath));
+      app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+          return next();
+        }
+        res.sendFile(path.join(distPath, 'index.html'));
+      });
+    }
+  }
+
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[ProjectFlow] Server listening on port ${PORT}`);
+    console.log(`[ProjectFlow] Server running on http://0.0.0.0:${PORT}`);
   });
 }
+
+startServer().catch((err) => {
+  console.error('Failed to start server:', err);
+});
 
 export default app;
