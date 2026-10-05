@@ -1,0 +1,197 @@
+{
+  "users": [
+    {
+      "id": "usr_df838c97",
+      "email": "demo@projectflow.io",
+      "password_hash": "$2a$10$wE9qfVn1QO7T9tZ0zH3sUe7Oq1QZ9sF0g2t5W6p3K8m1L4n7J9xGy",
+      "full_name": "Alex Morgan",
+      "avatar_color": "#4f46e5",
+      "role": "Lead Project Director",
+      "created_at": "2026-09-05T05:00:23.335Z",
+      "updated_at": "2026-10-05T05:00:23.335Z"
+    },
+    {
+      "email": "ramyaselva048@gmail.com",
+      "password_hash": "$2b$10$eMvoiT3LIsfLborDRudW0.DWoM31/T0m1yYyGY3IaMdFO0qO6Nqde",
+      "full_name": "Ramya S",
+      "avatar_color": "#4f46e5",
+      "role": "Project Manager",
+      "id": "usr_cf224ce9",
+      "created_at": "2026-10-05T05:02:01.416Z",
+      "updated_at": "2026-10-05T05:41:46.083Z"
+    }
+  ],
+  "projects": [
+    {
+      "user_id": "usr_cf224ce9",
+      "name": "College No Due Management System",
+      "description": "Developed a web-based system to digitize and streamline the college no-due clearance process. The system enables students and staff to manage due records, track clearance status, and simplify certificate issuance with secure role-based access and centralized data management.",
+      "status": "Completed",
+      "priority": "High",
+      "progress": 100,
+      "start_date": "2026-09-20",
+      "deadline": "2026-09-25",
+      "id": "prj_2a48e8bb",
+      "created_at": "2026-10-05T05:05:14.311Z",
+      "updated_at": "2026-10-05T05:09:17.477Z"
+    },
+    {
+      "id": "prj_2ff29a8a",
+      "user_id": "usr_df838c97",
+      "name": "Nexus Cloud Infrastructure Migration",
+      "description": "Complete architecture migration from legacy monolith to hybrid Kubernetes microservices with zero-downtime deployment pipelines.",
+      "status": "In Progress",
+      "priority": "High",
+      "progress": 68,
+      "start_date": "2026-09-10",
+      "deadline": "2026-10-20",
+      "created_at": "2026-09-10T05:00:23.335Z",
+      "updated_at": "2026-10-05T05:00:23.335Z"
+    },
+    {
+      "id": "prj_b97a41d0",
+      "user_id": "usr_df838c97",
+      "name": "Quantum Design System v3.0",
+      "description": "Unified cross-platform component library with strict WCAG AAA contrast, semantic token governance, and automated Figma sync.",
+      "status": "In Progress",
+      "priority": "Urgent",
+      "progress": 85,
+      "start_date": "2026-08-26",
+      "deadline": "2026-10-12",
+      "created_at": "2026-08-26T05:00:23.335Z",
+      "updated_at": "2026-10-05T05:00:23.335Z"
+    },
+    {
+      "id": "prj_1d60c729",
+      "user_id": "usr_df838c97",
+      "name": "Enterprise Security & SOC2 Compliance",
+      "description": "Penetration testing audits, access control hardening, automated vulnerability scans, and comprehensive data residency policies.",
+      "status": "Completed",
+      "priority": "High",
+      "progress": 100,
+      "start_date": "2026-08-06",
+      "deadline": "2026-09-30",
+      "created_at": "2026-08-06T05:00:23.335Z",
+      "updated_at": "2026-09-30T05:00:23.335Z"
+    },
+    {
+      "id": "prj_039078ca",
+      "user_id": "usr_df838c97",
+      "name": "Mobile Client v2.5 Performance Tuning",
+      "description": "Optimizing startup cold-launch latency, memory footprint on low-spec devices, and offline cache synchronization.",
+      "status": "Planning",
+      "priority": "Medium",
+      "progress": 20,
+      "start_date": "2026-09-25",
+      "deadline": "2026-11-19",
+      "created_at": "2026-09-25T05:00:23.335Z",
+      "updated_at": "2026-10-05T05:00:23.335Z"
+    }
+  ],
+  "files": [
+    {
+      "project_id": "prj_2a48e8bb",
+      "user_id": "usr_cf224ce9",
+      "filename": "ST INTERN TASK 5 PROJECT REPORT.pdf",
+      "stored_filename": "1791177176680_ST_INTERN_TASK_5_PROJECT_REPORT_e02aca2c-8ed.pdf",
+      "file_type": "application/pdf",
+      "file_size": 17296785,
+      "path": "/app/applet/uploads/1791177176680_ST_INTERN_TASK_5_PROJECT_REPORT_e02aca2c-8ed.pdf",
+      "id": "fil_2e4b9612",
+      "upload_date": "2026-10-05T05:12:56.763Z"
+    },
+    {
+      "id": "fil_bb957b32",
+      "project_id": "prj_2ff29a8a",
+      "user_id": "usr_df838c97",
+      "filename": "Architecture_Spec_v1.0.txt",
+      "stored_filename": "seed_architecture_spec_1791176423335.txt",
+      "file_type": "text/plain",
+      "file_size": 435,
+      "path": "/app/applet/uploads/seed_architecture_spec_1791176423335.txt",
+      "upload_date": "2026-09-15T05:00:23.335Z"
+    }
+  ],
+  "activities": [
+    {
+      "project_id": "prj_2a48e8bb",
+      "user_id": "usr_cf224ce9",
+      "action": "FILE_UPLOADED",
+      "details": "File \"ST INTERN TASK 5 PROJECT REPORT.pdf\" (16891.4 KB) uploaded",
+      "id": "act_8fb3be8b",
+      "created_at": "2026-10-05T05:12:56.764Z"
+    },
+    {
+      "project_id": "prj_2a48e8bb",
+      "user_id": "usr_cf224ce9",
+      "action": "FILE_DELETED",
+      "details": "File \"NoDue_Clearance_Doc.txt\" was deleted",
+      "id": "act_ca941009",
+      "created_at": "2026-10-05T05:12:11.674Z"
+    },
+    {
+      "project_id": "prj_2a48e8bb",
+      "user_id": "usr_cf224ce9",
+      "action": "FILE_UPLOADED",
+      "details": "File \"NoDue_Clearance_Doc.txt\" (0.0 KB) uploaded",
+      "id": "act_07a4e59c",
+      "created_at": "2026-10-05T05:09:46.803Z"
+    },
+    {
+      "project_id": "prj_2a48e8bb",
+      "user_id": "usr_cf224ce9",
+      "action": "PROJECT_UPDATED",
+      "details": "Progress updated to 100%",
+      "id": "act_397fa8d4",
+      "created_at": "2026-10-05T05:09:17.477Z"
+    },
+    {
+      "project_id": "prj_2a48e8bb",
+      "user_id": "usr_cf224ce9",
+      "action": "PROJECT_CREATED",
+      "details": "Project \"College No Due Management System\" was created with priority High",
+      "id": "act_0a87b433",
+      "created_at": "2026-10-05T05:05:14.311Z"
+    },
+    {
+      "id": "act_63035259",
+      "project_id": "prj_2ff29a8a",
+      "user_id": "usr_df838c97",
+      "action": "PROJECT_CREATED",
+      "details": "Project \"Nexus Cloud Infrastructure Migration\" was initialized",
+      "created_at": "2026-09-10T05:00:23.335Z"
+    },
+    {
+      "id": "act_f9de7387",
+      "project_id": "prj_2ff29a8a",
+      "user_id": "usr_df838c97",
+      "action": "FILE_UPLOADED",
+      "details": "Uploaded technical specification document \"Architecture_Spec_v1.0.txt\"",
+      "created_at": "2026-09-15T05:00:23.335Z"
+    },
+    {
+      "id": "act_2b1b670c",
+      "project_id": "prj_2ff29a8a",
+      "user_id": "usr_df838c97",
+      "action": "PROGRESS_UPDATED",
+      "details": "Updated milestone completion progress to 68%",
+      "created_at": "2026-10-03T05:00:23.335Z"
+    },
+    {
+      "id": "act_fb9c989e",
+      "project_id": "prj_b97a41d0",
+      "user_id": "usr_df838c97",
+      "action": "PROJECT_CREATED",
+      "details": "Project \"Quantum Design System v3.0\" was initialized",
+      "created_at": "2026-08-26T05:00:23.335Z"
+    },
+    {
+      "id": "act_1df395e9",
+      "project_id": "prj_1d60c729",
+      "user_id": "usr_df838c97",
+      "action": "STATUS_CHANGED",
+      "details": "Status changed to Completed after successful SOC2 Type II audit",
+      "created_at": "2026-09-30T05:00:23.335Z"
+    }
+  ]
+}

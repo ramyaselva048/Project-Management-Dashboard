@@ -1,0 +1,6 @@
+{
+  "name": "ProjectFlow - Modern Project Management Dashboard",
+  "description": "Production-grade project management dashboard with real authentication, project tracking, secure file uploads, and analytics reports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
