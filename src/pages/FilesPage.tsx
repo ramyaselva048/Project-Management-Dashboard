@@ -23,12 +23,14 @@ import { FileUploadModal } from '../components/files/FileUploadModal.tsx';
 import { FilePreviewModal } from '../components/files/FilePreviewModal.tsx';
 import { ConfirmDialog } from '../components/common/ConfirmDialog.tsx';
 import { useToast } from '../context/ToastContext.tsx';
+import { downloadFileDirectly } from '../utils/fileDownloader.ts';
 
 export const FilesPage: React.FC = () => {
   const { success, error } = useToast();
   const [files, setFiles] = useState<ProjectFile[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -90,13 +92,24 @@ export const FilesPage: React.FC = () => {
   };
 
   const handleFileUploaded = (uploadedFile: ProjectFile) => {
-    // Reset type filter to 'all' so that whatever format was uploaded is immediately visible!
+    // Reset filters so the newly uploaded file is immediately visible at the top!
     setTypeFilter('all');
+    setProjectFilter('all');
     setSearch('');
-    // Align projectFilter with the uploaded file
-    setProjectFilter(uploadedFile.project_id);
-    fetchFiles('all', uploadedFile.project_id, '');
+    fetchFiles('all', 'all', '');
     success(`File "${uploadedFile.filename}" uploaded successfully!`);
+  };
+
+  const handleDownloadFile = async (file: ProjectFile) => {
+    try {
+      setDownloadingId(file.id);
+      await downloadFileDirectly(file.id, file.filename);
+      success(`Downloaded "${file.filename}"`);
+    } catch (err: any) {
+      error(err.message || 'Failed to download file.');
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   const handleDeleteFile = async () => {
@@ -378,14 +391,19 @@ export const FilesPage: React.FC = () => {
                   >
                     <Eye className="w-3.5 h-3.5" />
                   </button>
-                  <a
-                    href={api.getDownloadUrl(file.id)}
-                    download
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadFile(file)}
+                    disabled={downloadingId === file.id}
                     title="Download File"
-                    className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    <Download className="w-3.5 h-3.5" />
-                  </a>
+                    {downloadingId === file.id ? (
+                      <div className="w-3.5 h-3.5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Download className="w-3.5 h-3.5" />
+                    )}
+                  </button>
                   <button
                     type="button"
                     onClick={() => setDeletingFile(file)}

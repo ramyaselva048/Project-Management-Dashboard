@@ -1,0 +1,7 @@
+ProjectFlow Cloud Architecture Specification
+Version 1.0
+Author: Alex Morgan
+Status: Production Ready
+Database: TiDB Cloud Serverless
+Frontend: React 19 + Vite + Tailwind CSS
+Backend: Express + Node.js

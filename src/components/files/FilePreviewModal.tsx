@@ -4,6 +4,7 @@ import { ProjectFile } from '../../types/index.ts';
 import { api, getAuthToken } from '../../services/api.ts';
 import { Modal } from '../common/Modal.tsx';
 import { PdfViewer } from './PdfViewer.tsx';
+import { downloadFileDirectly } from '../../utils/fileDownloader.ts';
 
 interface FilePreviewModalProps {
   file: ProjectFile | null;
@@ -15,6 +16,19 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, isOpen
   const [textContent, setTextContent] = useState<string | null>(null);
   const [loadingText, setLoadingText] = useState<boolean>(false);
   const [imageError, setImageError] = useState<boolean>(false);
+  const [downloading, setDownloading] = useState<boolean>(false);
+
+  const handleDownload = async () => {
+    if (!file) return;
+    try {
+      setDownloading(true);
+      await downloadFileDirectly(file.id, file.filename);
+    } catch (e) {
+      console.error('Download error:', e);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
     if (!file || !isOpen) {
@@ -79,7 +93,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, isOpen
       onClose={onClose}
       title={file.filename}
       subtitle={`${formatSize(file.file_size)} · Uploaded on ${new Date(file.upload_date).toLocaleDateString()}`}
-      maxWidth={isPdf ? '4xl' : isImage ? '3xl' : '2xl'}
+      maxWidth={isPdf ? '6xl' : isImage ? '3xl' : '2xl'}
     >
       <div className="space-y-4">
         {/* If PDF, use native Canvas-based PdfViewer matching Image 2 */}
@@ -99,13 +113,14 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, isOpen
                 ) : (
                   <div className="text-center p-8 text-xs text-slate-500">
                     <p>Image preview unavailable.</p>
-                    <a
-                      href={downloadUrl}
-                      download
-                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-semibold"
+                    <button
+                      type="button"
+                      onClick={handleDownload}
+                      disabled={downloading}
+                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold disabled:opacity-50"
                     >
-                      <Download className="w-3.5 h-3.5" /> Download Image
-                    </a>
+                      <Download className="w-3.5 h-3.5" /> {downloading ? 'Downloading...' : 'Download Image'}
+                    </button>
                   </div>
                 )}
               </div>
@@ -135,14 +150,15 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, isOpen
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
                   Direct in-browser interactive preview is not available for this binary format. You can download and inspect it locally.
                 </p>
-                <a
-                  href={downloadUrl}
-                  download
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  disabled={downloading}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm disabled:opacity-50"
                 >
                   <Download className="w-4 h-4" />
-                  Download Document
-                </a>
+                  {downloading ? 'Downloading...' : 'Download Document'}
+                </button>
               </div>
             )}
           </div>
@@ -156,14 +172,15 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, isOpen
             )}
           </div>
           <div className="flex items-center gap-3">
-            <a
-              href={downloadUrl}
-              download
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm"
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={downloading}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm disabled:opacity-50"
             >
               <Download className="w-3.5 h-3.5" />
-              Download Original
-            </a>
+              {downloading ? 'Downloading...' : 'Download Original'}
+            </button>
           </div>
         </div>
       </div>

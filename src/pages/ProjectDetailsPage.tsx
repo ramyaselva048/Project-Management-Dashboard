@@ -25,11 +25,13 @@ import { ConfirmDialog } from '../components/common/ConfirmDialog.tsx';
 import { FilePreviewModal } from '../components/files/FilePreviewModal.tsx';
 import { FileUploadModal } from '../components/files/FileUploadModal.tsx';
 import { useToast } from '../context/ToastContext.tsx';
+import { downloadFileDirectly } from '../utils/fileDownloader.ts';
 
 export const ProjectDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { success, error } = useToast();
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const [project, setProject] = useState<
     (Project & { files: ProjectFile[]; activities: Activity[] }) | null
@@ -131,6 +133,18 @@ export const ProjectDetailsPage: React.FC = () => {
     deadlineTime < Date.now() &&
     project.status !== 'Completed' &&
     project.status !== 'Cancelled';
+
+  const handleDownloadFile = async (file: ProjectFile) => {
+    try {
+      setDownloadingId(file.id);
+      await downloadFileDirectly(file.id, file.filename);
+      success(`Downloaded "${file.filename}"`);
+    } catch (err: any) {
+      error(err.message || 'Failed to download file.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -326,14 +340,19 @@ export const ProjectDetailsPage: React.FC = () => {
                     >
                       <Eye className="w-4 h-4" />
                     </button>
-                    <a
-                      href={api.getDownloadUrl(file.id)}
-                      download
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadFile(file)}
+                      disabled={downloadingId === file.id}
                       title="Download Document"
-                      className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                      className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50"
                     >
-                      <Download className="w-4 h-4" />
-                    </a>
+                      {downloadingId === file.id ? (
+                        <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4" />
+                      )}
+                    </button>
                     <button
                       type="button"
                       onClick={() => setDeletingFile(file)}

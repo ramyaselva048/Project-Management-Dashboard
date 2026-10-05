@@ -342,12 +342,12 @@ Lead: Alex Morgan
   }
 
   // --- Projects Operations ---
-  getProjects(userId: string): Project[] {
-    return this.data.projects.filter(p => p.user_id === userId);
+  getProjects(userId?: string): Project[] {
+    return this.data.projects;
   }
 
-  getProjectById(id: string, userId: string): Project | undefined {
-    return this.data.projects.find(p => p.id === id && p.user_id === userId);
+  getProjectById(id: string, userId?: string): Project | undefined {
+    return this.data.projects.find(p => p.id === id);
   }
 
   createProject(project: Omit<Project, 'id' | 'created_at' | 'updated_at'>): Project {
@@ -426,10 +426,10 @@ Lead: Alex Morgan
   }
 
   // --- Files Operations ---
-  getFiles(userId: string, projectId?: string): (ProjectFile & { project_name?: string })[] {
+  getFiles(userId?: string, projectId?: string): (ProjectFile & { project_name?: string })[] {
     const files = projectId
-      ? this.data.files.filter(f => f.user_id === userId && f.project_id === projectId)
-      : this.data.files.filter(f => f.user_id === userId);
+      ? this.data.files.filter(f => f.project_id === projectId)
+      : this.data.files;
 
     return files.map(file => {
       const proj = this.data.projects.find(p => p.id === file.project_id);
@@ -440,8 +440,11 @@ Lead: Alex Morgan
     });
   }
 
-  getFileById(id: string, userId: string): (ProjectFile & { project_name?: string }) | undefined {
-    const file = this.data.files.find(f => f.id === id && f.user_id === userId);
+  getFileById(id: string, userId?: string): (ProjectFile & { project_name?: string }) | undefined {
+    let file = userId ? this.data.files.find(f => f.id === id && f.user_id === userId) : undefined;
+    if (!file) {
+      file = this.data.files.find(f => f.id === id);
+    }
     if (!file) return undefined;
     const proj = this.data.projects.find(p => p.id === file.project_id);
     return {
@@ -470,14 +473,20 @@ Lead: Alex Morgan
     return newFile;
   }
 
-  deleteFile(id: string, userId: string): boolean {
-    const index = this.data.files.findIndex(f => f.id === id && f.user_id === userId);
+  deleteFile(id: string, userId?: string): boolean {
+    const index = this.data.files.findIndex(f => f.id === id);
     if (index === -1) return false;
 
     const file = this.data.files[index];
+    const uploadsDir = path.resolve(process.cwd(), 'uploads');
     try {
       if (fs.existsSync(file.path)) {
         fs.unlinkSync(file.path);
+      } else if (file.stored_filename) {
+        const storedPath = path.resolve(uploadsDir, file.stored_filename);
+        if (fs.existsSync(storedPath)) {
+          fs.unlinkSync(storedPath);
+        }
       }
     } catch (err) {
       console.error('Error removing file from disk:', err);
@@ -485,7 +494,7 @@ Lead: Alex Morgan
 
     this.createActivity({
       project_id: file.project_id,
-      user_id: userId,
+      user_id: userId || file.user_id,
       action: 'FILE_DELETED',
       details: `File "${file.filename}" was deleted`,
     });

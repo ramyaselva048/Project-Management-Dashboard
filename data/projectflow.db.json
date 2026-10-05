@@ -3,12 +3,12 @@
     {
       "id": "usr_cf224ce9",
       "email": "ramyaselva048@gmail.com",
-      "password_hash": "$2b$10$oTf7RfNk14/b7utEBk.avubdsl/ZT3sZREwq/HQthEfpVtr1PfRzK",
+      "password_hash": "$2b$10$OPz.mzTiQwfDH.T.bGB3DutpY6w42ntm08F.LE.hDvyUpDKssZHmO",
       "full_name": "Ramya S",
       "avatar_color": "#4f46e5",
       "role": "Project Manager",
       "created_at": "2026-10-05T05:02:01.416Z",
-      "updated_at": "2026-10-05T06:30:00.931Z"
+      "updated_at": "2026-10-05T06:46:04.242Z"
     },
     {
       "id": "usr_df838c97",
@@ -19,6 +19,26 @@
       "role": "Lead Project Director",
       "created_at": "2026-09-05T05:00:23.335Z",
       "updated_at": "2026-10-05T06:30:08.393Z"
+    },
+    {
+      "id": "usr_e595233d",
+      "email": "kasthuri@gmail.com",
+      "password_hash": "$2b$10$766A0FFNZ4.XSNuA1HyX7OhQvxWlA6022WQqZ9koIZhr862OQyNsq",
+      "full_name": "kasthuri S",
+      "avatar_color": "#7c3aed",
+      "role": "Project Manager",
+      "created_at": "2026-10-05T06:36:01.656Z",
+      "updated_at": "2026-10-05T06:36:01.656Z"
+    },
+    {
+      "id": "usr_fa83b822",
+      "email": "abinaya@gmail.com",
+      "password_hash": "$2b$10$IL6HD12G99XvdFRANkMh/.XtAg7h9GucjioPR3WqOJNSMcSfC5kfa",
+      "full_name": "Abinaya A",
+      "avatar_color": "#4f46e5",
+      "role": "Project Manager",
+      "created_at": "2026-10-05T07:22:04.486Z",
+      "updated_at": "2026-10-05T07:22:04.486Z"
     }
   ],
   "projects": [
@@ -121,8 +141,8 @@
       "filename": "ST INTERN TASK 5 PROJECT REPORT.pdf",
       "stored_filename": "1791177176680_ST_INTERN_TASK_5_PROJECT_REPORT_e02aca2c-8ed.pdf",
       "file_type": "application/pdf",
-      "file_size": 17296785,
-      "path": "/app/applet/uploads/1791177176680_ST_INTERN_TASK_5_PROJECT_REPORT_e02aca2c-8ed.pdf",
+      "file_size": 2048,
+      "path": "uploads/1791177176680_ST_INTERN_TASK_5_PROJECT_REPORT_e02aca2c-8ed.pdf",
       "upload_date": "2026-10-05T05:12:56.763Z"
     },
     {
@@ -133,7 +153,7 @@
       "stored_filename": "seed_architecture_spec_1791176423335.txt",
       "file_type": "text/plain",
       "file_size": 435,
-      "path": "/app/applet/uploads/seed_architecture_spec_1791176423335.txt",
+      "path": "uploads/seed_architecture_spec_1791176423335.txt",
       "upload_date": "2026-09-15T05:00:23.335Z"
     },
     {
@@ -144,7 +164,7 @@
       "stored_filename": "1791179449182_naan_mudhalvan_project_2e6aeff0-996.docx",
       "file_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "file_size": 388791,
-      "path": "/app/applet/uploads/1791179449182_naan_mudhalvan_project_2e6aeff0-996.docx",
+      "path": "uploads/1791179449182_naan_mudhalvan_project_2e6aeff0-996.docx",
       "upload_date": "2026-10-05T05:50:49.189Z"
     }
   ],
