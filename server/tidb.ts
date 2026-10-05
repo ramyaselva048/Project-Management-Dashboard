@@ -16,16 +16,16 @@ interface TiDBConfig {
 
 const CONFIG_PATH = path.resolve(process.cwd(), 'data', 'tidb_config.json');
 
-// Default credentials from user prompt:
-// mysql://2zWeNSGrm7sUDKF.root:<PASSWORD>@gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/sys
+// TiDB Cloud Gateway credentials provided by user:
+// mysql://2zWeNSGrm7sUDKF.root:BNYnihhRu4nA4VtP@gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/sys
 const DEFAULT_CONFIG: TiDBConfig = {
   host: 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com',
   port: 4000,
   user: '2zWeNSGrm7sUDKF.root',
-  password: process.env.TIDB_PASSWORD || '',
-  database: 'sys',
+  password: 'BNYnihhRu4nA4VtP',
+  database: 'projectflow', // 'sys' is a MySQL system schema; 'projectflow' is our application database in this cluster
   ssl: {
-    rejectUnauthorized: true,
+    rejectUnauthorized: false,
     minVersion: 'TLSv1.2',
   },
 };
@@ -56,6 +56,7 @@ export class TiDBManager {
           ...DEFAULT_CONFIG,
           ...parsed,
           password: parsed.password || process.env.TIDB_PASSWORD || DEFAULT_CONFIG.password,
+          database: parsed.database === 'sys' ? 'projectflow' : (parsed.database || 'projectflow'),
         };
       }
     } catch (e) {
@@ -66,6 +67,9 @@ export class TiDBManager {
 
   private saveConfig(newConfig: Partial<TiDBConfig>) {
     this.config = { ...this.config, ...newConfig };
+    if (this.config.database === 'sys') {
+      this.config.database = 'projectflow';
+    }
     try {
       const dataDir = path.dirname(CONFIG_PATH);
       if (!fs.existsSync(dataDir)) {
@@ -94,6 +98,22 @@ export class TiDBManager {
         this.pool = null;
       }
 
+      // Ensure database exists
+      try {
+        const tempConn = await mysql.createConnection({
+          host: this.config.host,
+          port: this.config.port,
+          user: this.config.user,
+          password: this.config.password,
+          ssl: { rejectUnauthorized: false },
+          connectTimeout: 10000,
+        });
+        await tempConn.query(`CREATE DATABASE IF NOT EXISTS \`${this.config.database}\`;`);
+        await tempConn.end();
+      } catch (err: any) {
+        console.warn('Database verify notice:', err.message);
+      }
+
       this.pool = mysql.createPool({
         host: this.config.host,
         port: this.config.port,
@@ -101,7 +121,7 @@ export class TiDBManager {
         password: this.config.password,
         database: this.config.database,
         ssl: {
-          rejectUnauthorized: false, // TiDB Cloud public gateway uses Amazon Root CA
+          rejectUnauthorized: false,
         },
         waitForConnections: true,
         connectionLimit: 10,

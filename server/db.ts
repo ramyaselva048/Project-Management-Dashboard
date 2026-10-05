@@ -98,9 +98,24 @@ class RelationalDatabase {
     };
   }
 
+  private syncTimer: NodeJS.Timeout | null = null;
+
   private saveDatabase(): void {
     try {
       fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+
+      // Asynchronous continuous replication to TiDB Cloud
+      if (this.syncTimer) clearTimeout(this.syncTimer);
+      this.syncTimer = setTimeout(async () => {
+        try {
+          const { tidbManager } = await import('./tidb.ts');
+          if (tidbManager.getStatus().connected) {
+            await tidbManager.syncDataFromLocal(this.data);
+          }
+        } catch {
+          // Resilient replication - local storage protects data integrity
+        }
+      }, 400);
     } catch (err) {
       console.error('Error saving database file:', err);
     }

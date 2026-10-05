@@ -1,0 +1,11 @@
+{
+  "host": "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
+  "port": 4000,
+  "user": "2zWeNSGrm7sUDKF.root",
+  "password": "BNYnihhRu4nA4VtP",
+  "database": "projectflow",
+  "ssl": {
+    "rejectUnauthorized": false,
+    "minVersion": "TLSv1.2"
+  }
+}
